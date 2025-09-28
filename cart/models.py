@@ -18,3 +18,16 @@ class Item(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
     def __str__(self):
         return str(self.id) + ' - ' + self.movie.name
+    
+class CheckoutFeedback(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    anonymous = models.BooleanField(default=False)
+    username = models.CharField(max_length=100, blank=True, null=True)
+    feedback = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    order = models.ForeignKey('Order', on_delete=models.CASCADE)
+    
+    def __str__(self):
+        if self.anonymous:
+            return f"Anonymous feedback for order #{self.order.id}"
+        return f"Feedback from {self.username or self.user.username} for order #{self.order.id}"

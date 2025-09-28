@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    {% if template_data.is_staff %}
+                    All Checkout Feedback
+                    {% else %}
+                    My Checkout Feedback
+                    {% endif %}
+                </h2>
+                <div>
+                    <a href="{% url 'cart.index' %}" class="btn btn-outline-secondary me-2">Back to Cart</a>
+                    <a href="{% url 'movies.index' %}" class="btn btn-primary">Continue Shopping</a>
+                </div>
+            </div>
+
+            {% if template_data.feedbacks %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                {% if template_data.is_staff %}
+                    Showing all feedback from all users ({{ template_data.page_obj.paginator.count }} total)
+                {% else %}
+                    Showing your feedback submissions ({{ template_data.page_obj.paginator.count }} total)
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        {% if template_data.is_staff %}All Feedback{% else %}My Feedback{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order #</th>
+                                    {% if template_data.is_staff %}
+                                    <th>User</th>
+                                    {% endif %}
+                                    <th>Feedback</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for feedback in template_data.feedbacks %}
+                                <tr>
+                                    <td class="fw-bold">#{{ feedback.order.id }}</td>
+                                    {% if template_data.is_staff %}
+                                    <td>
+                                        {% if feedback.anonymous %}
+                                            <span class="text-muted">Anonymous</span>
+                                        {% else %}
+                                            {{ feedback.username|default:feedback.user.username }}
+                                            {% if feedback.user %}
+                                                <br><small class="text-muted">({{ feedback.user.email }})</small>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    {% endif %}
+                                    <td>
+                                        <div class="feedback-text">
+                                            {{ feedback.feedback|truncatewords:15 }}
+                                            {% if feedback.feedback|wordcount > 15 %}
+                                            <button class="btn btn-sm btn-link p-0 ms-1" 
+                                                    type="button" 
+                                                    data-bs-toggle="collapse" 
+                                                    data-bs-target="#feedbackFull{{ feedback.id }}"
+                                                    aria-expanded="false">
+                                                Show more
+                                            </button>
+                                            <div class="collapse" id="feedbackFull{{ feedback.id }}">
+                                                {{ feedback.feedback }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>{{ feedback.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if feedback.anonymous %}
+                                            <span class="badge bg-secondary">Anonymous</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Public</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            {% if template_data.page_obj.has_other_pages %}
+            <nav aria-label="Feedback pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if template_data.page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ template_data.page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in template_data.page_obj.paginator.page_range %}
+                    <li class="page-item {% if template_data.page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if template_data.page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ template_data.page_obj.next_page_number }}">Next</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="alert alert-info">
+                <h5 class="alert-heading">No Feedback Yet</h5>
+                <p class="mb-0">
+                    {% if template_data.is_staff %}
+                    No checkout feedback has been submitted yet.
+                    {% else %}
+                    You haven't submitted any checkout feedback yet. Your feedback will appear here after you complete a purchase and share your experience.
+                    {% endif %}
+                </p>
+                {% if not template_data.is_staff %}
+                <hr>
+                <p class="mb-0">Complete a purchase to share your checkout experience!</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .feedback-text {
+        max-width: 300px;
+        word-wrap: break-word;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+    }
+    
+    .badge {
+        font-size: 0.8em;
+    }
+    
+    .card {
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+    }
+    
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    .alert-info {
+        border-left: 4px solid #0dcaf0;
+    }
+</style>
+{% endblock %}
